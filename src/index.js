@@ -4,44 +4,59 @@ function eval() {
 }
 
 function expressionCalculator(expr) {
-    let signs = ['(', ')', '+', '-', '*', '/'];
-    // split expr
-    let strArr = expr.split('');
+  let strArr = expr.trim().split('');
+  //str without space
+  let nakedStr = strArr.filter( i => i !=="" && i !==" " );
+  let symbolStr = '/*+-';
+  let calculation = [];
+  let current = '';
+  for (let i = 0; i < nakedStr.length; i++) {  
+    let symbol = nakedStr[i];
+    if(symbolStr.indexOf(symbol) !== -1) {
+      calculation.push(+current);
+      calculation.push(symbol);
+      current = ''
+    } else {
+      current +=symbol;
+    }
+  }
+  if(current !== '') {
+    calculation.push(+current);
+  }
 
-    //str without space
-    let nakedStr = strArr.filter( i => i !==" ");
-    let arrWithNum = [];
-
-    let res = null;
-
-    for (let i = 0; i < nakedStr.length; i++) {
-    //   debugger;
-      let cur = nakedStr[i];
-      let next = nakedStr[i + 1];
-      let prev = nakedStr[i - 1];
-
-      if (signs.includes(cur) && cur === "+"){
-        res = +prev + +next;
-      }
-
-      if (signs.includes(cur) && cur === "-"){
-        res = +prev - +next;
-      }
-      if (signs.includes(cur) && cur === "*"){
-        res = +prev * +next;
-      }
-      if (signs.includes(cur) && cur === "/"){
-        res = +prev / +next;
-          if(+next) {
-            res = +prev / +next;
+  //make calculation starting from more priority operand
+  for (el of symbolStr.split('')) {
+    for (let i = 0; i < calculation.length; i++) {
+      let indexOfOperand = calculation.indexOf(el);
+      let temp = null;
+      let prev = calculation[indexOfOperand - 1];
+      let next = calculation[indexOfOperand + 1 ];
+      if (indexOfOperand > -1) {
+        if (el === '*') {
+          temp = prev * next;
+        } else if(el === '/') {
+          if(next) {
+            temp = prev / next;
           } else {
             throw new Error("TypeError: Division by zero.");
-            
           }
+        } else if(el === '+') {
+          temp = prev + next;
+        } else if(el === '-') {
+          temp = prev - next;
+        }
+        calculation.splice(indexOfOperand - 1, 3, temp)
       }
-    
-    }  
-    return res;
+
+    }
+  }
+  // debugger;
+  let res = calculation[0];
+  if (res % Math.trunc(res) == 0){
+    return res
+  } else {
+    return Math.round(res*10000) / 10000;
+  } 
 }
 
 module.exports = {
