@@ -24,39 +24,44 @@ function expressionCalculator(expr) {
     calculation.push(+current);
   }
 
+  debugger;
   //make calculation starting from more priority operand
-  for (el of symbolStr.split('')) {
-    for (let i = 0; i < calculation.length; i++) {
-      let indexOfOperand = calculation.indexOf(el);
-      let temp = null;
-      let prev = calculation[indexOfOperand - 1];
-      let next = calculation[indexOfOperand + 1 ];
-      if (indexOfOperand > -1) {
-        if (el === '*') {
-          temp = prev * next;
-        } else if(el === '/') {
-          if(next) {
-            temp = prev / next;
-          } else {
-            throw new Error("TypeError: Division by zero.");
-          }
-        } else if(el === '+') {
-          temp = prev + next;
-        } else if(el === '-') {
-          temp = prev - next;
-        }
-        calculation.splice(indexOfOperand - 1, 3, temp)
-      }
+  let operators = [
+    {"*": (a, b) => a * b,
+     "/": (a, b) => a / b,
+    },
+    {"+": (a, b) => a + b,
+     "-": (a, b) => a - b,
+    }];
+  
+  let newCalculation = [];            //[16, "+", 25, "-", 92, "+", 54, "/", 66];
+  let curOperator;  
 
+  for (let operator of operators) {
+    for (let i = 0; i < calculation.length; i++) {
+      // if curent el of calculation is operator then remember it for further operation else it is number - push in to newCalculation array
+      let currentEl = calculation[i];
+      if (operator[currentEl]) {
+        curOperator = operator[currentEl];
+      } else if(curOperator) {
+        if(curOperator == operator['/'] && currentEl === 0) {
+          throw new Error("TypeError: Division by zero.");
+        } else {
+          let lastNumber = newCalculation[newCalculation.length - 1];
+          newCalculation[newCalculation.length - 1] = curOperator(lastNumber, currentEl);
+          curOperator = null;
+        }
+      } else {
+        newCalculation.push(currentEl);
+      }
     }
+    calculation = newCalculation;
+    newCalculation = [];  
   }
-  // debugger;
+  
   let res = calculation[0];
-  if (res % Math.trunc(res) == 0){
-    return res
-  } else {
-    return Math.round(res*10000) / 10000;
-  } 
+
+  return Math.round(res*10000) / 10000;
 }
 
 module.exports = {
