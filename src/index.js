@@ -7,7 +7,7 @@ function expressionCalculator(expr) {
   let strArr = expr.trim().split('');
   //str without space
   let nakedStr = strArr.filter( i => i !=="" && i !==" " );
-  let symbolStr = '/*+-';
+  let symbolStr = '/*+-()';
   let calculation = [];
   let current = '';
   for (let i = 0; i < nakedStr.length; i++) {  
@@ -25,6 +25,33 @@ function expressionCalculator(expr) {
   }
 
   debugger;
+  //check brackets 
+  function checkBrackets(calculation) {
+    let stack = [];
+    debugger;
+    for(let el of calculation) {
+      if ( el == '(') {
+        stack.push(el);
+      } else if(el == ')') {
+        let topOfStack = stack[stack.length - 1];
+        if(stack.length > 0 && topOfStack !== el){
+          stack.pop();
+        }
+        else {
+          throw new Error("ExpressionError: Brackets must be paired");
+      
+        }
+      }
+    }
+    if (!stack.length)  {
+      return true;
+    } else {
+      throw new Error("ExpressionError: Brackets must be paired");
+    }
+  }
+
+  if (checkBrackets(calculation)) {
+  // if prackets is paired continue  
   //make calculation starting from more priority operand
   let operators = [
     {"*": (a, b) => a * b,
@@ -34,7 +61,7 @@ function expressionCalculator(expr) {
      "-": (a, b) => a - b,
     }];
   
-  let newCalculation = [];            //[16, "+", 25, "-", 92, "+", 54, "/", 66];
+  let newCalculation = [];           
   let curOperator;  
 
   for (let operator of operators) {
@@ -58,6 +85,12 @@ function expressionCalculator(expr) {
     calculation = newCalculation;
     newCalculation = [];  
   }
+
+
+  }
+  
+   
+ 
   
   let res = calculation[0];
 
