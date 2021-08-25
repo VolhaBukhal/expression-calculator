@@ -1,9 +1,11 @@
+  
 function eval() {
-    // Do not use eval!!!
-    return;
+  // Do not use eval!!!
+  return;
 }
 
 function expressionCalculator(expr) {
+  //transrorm expresstion to array
   let strArr = expr.trim().split('');
   //str without space
   let nakedStr = strArr.filter( i => i !=="" && i !==" " );
@@ -13,8 +15,12 @@ function expressionCalculator(expr) {
   for (let i = 0; i < nakedStr.length; i++) {  
     let symbol = nakedStr[i];
     if(symbolStr.indexOf(symbol) !== -1) {
-      calculation.push(+current);
-      calculation.push(symbol);
+      if(current.length > 0) {
+        calculation.push(+current);
+        calculation.push(symbol);
+      } else {
+        calculation.push(symbol);
+      }
       current = ''
     } else {
       current +=symbol;
@@ -24,8 +30,7 @@ function expressionCalculator(expr) {
     calculation.push(+current);
   }
 
-  debugger;
-  //check brackets 
+  //check brackets in array
   function checkBrackets(calculation) {
     let stack = [];
     debugger;
@@ -50,65 +55,69 @@ function expressionCalculator(expr) {
     }
   }
 
+  // if brackets is paired continue  
   if (checkBrackets(calculation)) {
-  // if prackets is paired continue  
-  //make calculation starting from more priority operand
-  let operators = [
-    {"*": (a, b) => a * b,
-     "/": (a, b) => a / b,
-    },
-    {"+": (a, b) => a + b,
-     "-": (a, b) => a - b,
-    }];
-  
-  let newCalculation = [];           
-  let curOperator;  
+    //make finding the brackets and calculate the inside brackets expresstion while calculation langth will not be equal to 1
+    while (calculation.length !== 1) {
+      let indexOfCloseBr = calculation.indexOf(')') // find first close bracket
+      let tempArr = calculation.slice(0, indexOfCloseBr);    
+      let indexOfOpenBr = tempArr.lastIndexOf('(');    // find last open bracket but in the array not longer then close bracket(in tempArr);
+      if (indexOfCloseBr !== -1) {
+        let innerCalcExp = calculation.slice((indexOfOpenBr + 1), indexOfCloseBr);
+        let innerRes;
+        innerRes = doCalc(innerCalcExp);
+        calculation.splice(indexOfOpenBr, (indexOfCloseBr - indexOfOpenBr + 1), innerRes[0]);
+        indexOfOpenBr = null;
+        indexOfCloseBr = null;
 
-  for (let operator of operators) {
-    for (let i = 0; i < calculation.length; i++) {
-      // if curent el of calculation is operator then remember it for further operation else it is number - push in to newCalculation array
-      let currentEl = calculation[i];
-      if (operator[currentEl]) {
-        curOperator = operator[currentEl];
-      } else if(curOperator) {
-        if(curOperator == operator['/'] && currentEl === 0) {
-          throw new Error("TypeError: Division by zero.");
-        } else {
-          let lastNumber = newCalculation[newCalculation.length - 1];
-          newCalculation[newCalculation.length - 1] = curOperator(lastNumber, currentEl);
-          curOperator = null;
-        }
       } else {
-        newCalculation.push(currentEl);
+        let res = doCalc(calculation);
+        return Math.round(res*10000) / 10000; 
       }
     }
-    calculation = newCalculation;
-    newCalculation = [];  
+
+  //make calculation starting from more priority operand
+  function doCalc(calculation) {
+    let operators = [
+      {"*": (a, b) => a * b,
+       "/": (a, b) => a / b,
+      },
+      {"+": (a, b) => a + b,
+       "-": (a, b) => a - b,
+      }];
+    
+    let newCalculation = [];           
+    let curOperator;  
+    
+    for (let operator of operators) {
+      for (let i = 0; i < calculation.length; i++) {
+        // if current el of calculation is operator then remember it for further operation else it is number - push it to newCalculation array
+        let currentEl = calculation[i];
+        if (operator[currentEl]) {
+          curOperator = operator[currentEl];
+        } else if(curOperator) {
+          if(curOperator == operator['/'] && currentEl === 0) {
+            throw new Error("TypeError: Division by zero.");
+          } else {
+            let lastNumber = newCalculation[newCalculation.length - 1];
+            newCalculation[newCalculation.length - 1] = curOperator(lastNumber, currentEl);
+            curOperator = null;
+          }
+        } else {
+          newCalculation.push(currentEl);
+        }
+      }
+      calculation = newCalculation;
+      newCalculation = [];  
+    }
+    return calculation;
   }
 
-
   }
-  
-   
- 
-  
-  let res = calculation[0];
 
-  return Math.round(res*10000) / 10000;
 }
 
 module.exports = {
-    expressionCalculator
+  expressionCalculator
 }
 
-
-
-// Кароч, кто будет делать, запомните. Надо будет сделать валидацию на ошибки по количеству скобок(аналогично bracket), и при делении на ноль, тоже ошибку сбрасывать.
-// Плюс я делал так:
-// Через regex правильно доставал данные.
-// Циклил, пока не будет в выражении никаких скобок. 
-// Искал самую глубокую пару скобок.
-// Решал то, что внутри. Сплайсом возвращал ответ в массив вместо выражения в скобках.
-// Повторял поиск самой глубокой скобки...
-// Ну и в конце решал все, что осталось без скобок в выражении.
-// Не думаю, что мой способ самый лучший, но все таки работает. Тут вообще тысяча разных способов как, и среди них нету ни одного легкого способа(если конечно не использовать все таки new Function, что по идее нельзя), так что если кто будет делать, держитесь там, это просто .... для новичка
